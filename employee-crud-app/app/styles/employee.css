@@ -1,0 +1,52 @@
+.p-datatable-header {
+    background: white !important;
+    border: none !important;
+    padding: 16px !important;
+}
+
+.p-datatable-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 1px solid #d1d5db;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+
+.p-datatable-thead>tr>th {
+    background: #cbd4da !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 16px !important;
+    border-bottom: 1px solid #d1d5db !important;
+    border-width: 0 0 1px 0 !important;
+}
+
+.p-datatable-tbody>tr>td {
+    padding: 16px !important;
+    color: #4b5563 !important;
+    font-size: 14px !important;
+}
+
+.p-datatable-tbody>tr:hover {
+    background: #f9fafb !important;
+    transition: 0.3s;
+}
+
+.p-datatable-tbody>tr:nth-child(even) {
+    background: #fcfcfc !important;
+}
+
+.datatable-header {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.p-paginator {
+    border: none !important;
+    padding: 16px !important;
+}
