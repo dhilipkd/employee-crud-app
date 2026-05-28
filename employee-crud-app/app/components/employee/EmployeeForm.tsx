@@ -1,92 +1,85 @@
 "use client";
 
-import { useState } from "react";
 import TInputField from "../TInputField";
 import TDropdown from "../TDropdown";
 
-export default function EmployeeForm() {
+type EmployeeFormProps = {
+    form: any;
+    setForm: React.Dispatch<React.SetStateAction<any>>;
+    departmentOptions: any[];
+    designationOptions: any[];
+    onDepartmentChange: (deptId: any) => void;
+};
 
-    const [employee, setEmployee] = useState({
-        name: "",
-        email: "",
-        department: "",
-        salary: "",
-        status: ""
-    });
-
-    const departmentOptions = [
-        { label: "IT", value: "IT" },
-        { label: "HR", value: "HR" },
-        { label: "Finance", value: "Finance" }
-    ];
-
-    const statusOptions = [
-        { label: "Active", value: "Active" },
-        { label: "Inactive", value: "Inactive" }
-    ];
+export default function EmployeeForm({
+    form,
+    setForm,
+    departmentOptions,
+    designationOptions,
+    onDepartmentChange
+}: EmployeeFormProps) {
 
     return (
         <div className="space-y-4">
 
             <TInputField
-                label="Name"
-                value={employee.name}
+                label="Employee Name"
+                value={form.employeeName}
                 placeholder="Enter Name"
                 onChange={(e) =>
-                    setEmployee({
-                        ...employee,
-                        name: e.target.value
-                    })
+                    setForm((prev: any) => ({
+                        ...prev,
+                        employeeName: e.target.value
+                    }))
                 }
             />
 
             <TInputField
                 label="Email"
-                value={employee.email}
+                value={form.email}
                 placeholder="Enter Email"
                 onChange={(e) =>
-                    setEmployee({
-                        ...employee,
+                    setForm((prev: any) => ({
+                        ...prev,
                         email: e.target.value
-                    })
+                    }))
                 }
             />
 
             <TDropdown
                 label="Department"
-                value={employee.department}
+                value={form.departmentId}
                 options={departmentOptions}
                 placeholder="Select Department"
-                onChange={(e) =>
-                    setEmployee({
-                        ...employee,
-                        department: e.value
-                    })
-                }
+                onChange={(e) => onDepartmentChange(e.value)}
             />
 
             <TDropdown
                 label="Designation"
-                value={employee.status}
-                options={statusOptions}
-                placeholder="Select Designation"
+                value={form.designationId}
+                options={form.departmentId ? designationOptions : []}
+                placeholder={
+                    form.departmentId
+                        ? "Select Designation"
+                        : "Select Department first"
+                }
                 onChange={(e) =>
-                    setEmployee({
-                        ...employee,
-                        status: e.value
-                    })
+                    setForm((prev: any) => ({
+                        ...prev,
+                        designationId: e.value
+                    }))
                 }
             />
 
             <TInputField
                 label="Salary"
-                value={employee.salary}
+                value={form.salary}
                 placeholder="Enter Salary"
                 onChange={(e) =>
-                    setEmployee({
-                        ...employee,
+                    setForm((prev: any) => ({
+                        ...prev,
                         salary: e.target.value
-                    })
+                    }))
                 }
             />
 

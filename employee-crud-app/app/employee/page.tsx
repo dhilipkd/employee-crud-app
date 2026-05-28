@@ -1,45 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import TDataTable from "../components/TDataTable";
 import TOffCanvas from "../components/TOffCanvas";
 
 import EmployeeForm from "../components/employee/EmployeeForm";
 
-import "../styles/employee.css"
+import "../styles/employee.css";
+
+import { getEmployeeDetails, getEmployeeMasters } from "../services/EmployeeService";
 
 export default function EmployeePage() {
 
     const [showSidebar, setShowSidebar] = useState(false);
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [departmentOptions, setDepartmentOptions] = useState<any[]>([]);
+    const [designationOptions, setDesignationOptions] = useState<any[]>([]);
 
-    const [employees, setEmployees] = useState([
-        {
-            employeeId: 1,
-            name: "Ravi",
-            email: "ravi@gmail.com",
-            department: "IT",
-            salary: 30000,
-            status: "Active"
-        },
-        {
-            employeeId: 2,
-            name: "John",
-            email: "john@gmail.com",
-            department: "HR",
-            salary: 25000,
-            status: "Inactive"
-        }
-    ]);
+    const [form, setForm] = useState({
+        employeeId: 0,
+        employeeName: "",
+        email: "",
+        departmentId: "",
+        designationId: "",
+        salary: "",
+    });
 
-    const handleEdit = (row: any) => {
-        console.log("Edit:", row);
+    // =========================
+    // LOAD EMPLOYEES
+    // =========================
+    const loadEmployees = async () => {
+
+        const response: any =
+            await getEmployeeDetails({
+                employeeId: undefined
+            });
+        console.log("FULL RESPONSE:", response);
+
+        const employeeList =
+            response?.employees || [];
+
+        const formatted =
+            employeeList.map((x: any) => ({
+                employeeId: x.employeeId,
+                Employee_Name: x.employeeName,
+                Email: x.email,
+                Department: x.departmentName,
+                Designation: x.designationName,
+                Salary: x.salary
+            }));
+
+        setEmployees(formatted);
+    };
+
+    // =========================
+    // LOAD DROPDOWNS
+    // =========================
+    const loadDropdowns = async () => {
+
+        const [
+            departmentRes,
+            designationRes
+        ] = await Promise.all([
+            getEmployeeMasters("Department"),
+            getEmployeeMasters("Designation")
+        ]);
+
+        console.log("departmentRes:", departmentRes);
+        console.log("designationRes:", designationRes);
+
+        const formattedDepartments =
+            (departmentRes?.data || []).map((x: any) => ({
+                label: x.name,
+                value: x.id
+            }));
+
+        const formattedDesignations =
+            (designationRes?.data || []).map((x: any) => ({
+                label: x.name,
+                value: x.id
+            }));
+
+        setDepartmentOptions(
+            formattedDepartments
+        );
+
+        setDesignationOptions(
+            formattedDesignations
+        );
+    };
+
+    useEffect(() => {
+        loadEmployees();
+        loadDropdowns();
+    }, []);
+
+    const handleDepartmentChange = async (deptId: any) => {
+
+        setForm((prev: any) => ({
+            ...prev,
+            departmentId: deptId,
+            designationId: ""
+        }));
+
+        const res = await getEmployeeMasters("Designation", deptId);
+
+        const formatted = (res?.data || []).map((x: any) => ({
+            label: x.name,
+            value: x.id
+        }));
+
+        setDesignationOptions(formatted);
+    };
+
+    // =========================
+    // EDIT
+    // =========================
+    const handleEdit = async (row: any) => {
+        const response: any =
+            await getEmployeeDetails({
+                employeeId: row.employeeId
+            });
+
+        const employee =
+            response?.employees?.[0];
+
+        if (!employee) return;
+
+        setForm({
+            employeeId: employee.employeeId,
+            employeeName: employee.employeeName,
+            email: employee.email,
+            departmentId: employee.departmentId,
+            designationId: employee.designationId,
+            salary: employee.salary
+        });
 
         setShowSidebar(true);
     };
 
+    // =========================
+    // DELETE
+    // =========================
     const handleDelete = (row: any) => {
-        console.log("Delete:", row);
 
         const updatedEmployees =
             employees.filter(
@@ -50,10 +154,13 @@ export default function EmployeePage() {
         setEmployees(updatedEmployees);
     };
 
-    const handleSave = () => {
-        console.log("Save");
-
+    // =========================
+    // SAVE
+    // =========================
+    const handleSave = async () => {
+        console.log(form);
         setShowSidebar(false);
+        await loadEmployees();
     };
 
     return (
@@ -80,7 +187,13 @@ export default function EmployeePage() {
                 primaryLabel="Save"
                 primaryAction={handleSave}
             >
-                <EmployeeForm />
+                <EmployeeForm
+                    form={form}
+                    setForm={setForm}
+                    departmentOptions={departmentOptions}
+                    designationOptions={designationOptions}
+                    onDepartmentChange={handleDepartmentChange}
+                />
             </TOffCanvas>
 
         </div>

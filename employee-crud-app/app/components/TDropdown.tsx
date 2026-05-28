@@ -8,6 +8,7 @@ interface Props {
     onChange?: (e: any) => void;
     placeholder?: string;
     label?: string;
+    disabled?: boolean;
 }
 
 export default function TDropdown({
@@ -15,7 +16,8 @@ export default function TDropdown({
     options,
     onChange,
     placeholder,
-    label
+    label,
+    disabled = false
 }: Props) {
     return (
         <div className="mb-3">
@@ -27,6 +29,7 @@ export default function TDropdown({
                 options={options}
                 onChange={onChange}
                 placeholder={placeholder}
+                disabled={disabled}
                 className="w-full"
             />
 
