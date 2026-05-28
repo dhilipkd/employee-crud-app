@@ -1,6 +1,6 @@
-import { GetEmployeeRequestDto, GetEmployeeResponseDto, MasterInfoResponseDto, MasterItemDto } from "../types/EmployeeDto";
+import { GetEmployeeRequestDto, GetEmployeeResponseDto, SaveEmployeeRequestDto, UpdateEmployeeRequestDto, MasterInfoResponseDto, MasterItemDto, ApiResponse } from "../types/EmployeeDto";
 
-import { getRequest, postRequest } from "./baseService";
+import { getRequest, postRequest, putRequest,deleteRequest } from "./baseService";
 
 
 // =========================
@@ -33,3 +33,39 @@ export async function getEmployeeMasters(
     const res = await getRequest<MasterInfoResponseDto<MasterItemDto>>(url);
     return res.data;
 }
+
+// =========================
+// SAVE EMPLOYEE
+// =========================
+export const saveEmployee = async (
+    payload: SaveEmployeeRequestDto
+) => {
+    const res = await postRequest<ApiResponse<null>, SaveEmployeeRequestDto>(
+        `/Employee/save`,
+        payload
+    );
+    return res.data;
+};
+
+// =========================
+// UPDATE EMPLOYEE
+// =========================
+export const updateEmployee = async (
+    payload: UpdateEmployeeRequestDto
+) => {
+    const res = await putRequest<ApiResponse<null>, UpdateEmployeeRequestDto>(
+        `/Employee/update`,
+        payload
+    );
+    return res.data;
+}
+
+// =========================
+// DELETE EMPLOYEE
+// =========================
+export const deleteEmployee = async (id: number) => {
+    const res = await deleteRequest<any>(
+        `/Employee/delete/${id}`
+    );
+    return res.data;
+};

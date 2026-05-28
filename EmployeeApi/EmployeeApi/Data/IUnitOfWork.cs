@@ -15,5 +15,10 @@ namespace EmployeeApi.Data
             string functionName,
             object parameters
         );
+
+        Task<BaseResponse> ExecuteNonQueryAsync(
+            string spName,
+            object parameters
+        );
     }
 }

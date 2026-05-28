@@ -7,6 +7,8 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
 
+import { confirmDialog } from "primereact/confirmdialog";
+
 interface TDatatableProps<T> {
     value: T[];
     dataKey: keyof T;
@@ -74,7 +76,21 @@ export default function TDatatable<T extends Record<string, any>>({
                         severity="danger"
                         rounded
                         outlined
-                        onClick={() => onDelete(rowData)}
+                        onClick={() => {
+                            confirmDialog({
+                                message: "Do you want to delete this record?",
+                                header: "Confirm Delete",
+                                icon: "pi pi-exclamation-triangle",
+
+                                acceptClassName: "p-button-danger",
+
+                                accept: () => {
+                                    onDelete(rowData);
+                                },
+
+                                reject: () => { }
+                            });
+                        }}
                     />
                 )}
 

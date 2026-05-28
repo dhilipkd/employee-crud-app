@@ -1,4 +1,5 @@
 ﻿using EmployeeApi.Modals;
+using EmployeeApi.Modals.EmployeeApi.Modals;
 using EmployeeApi.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,27 @@ namespace EmployeeApi.Controllers
         {
             var result = await _employeeService.GetMasterAsync<object>(module, id);
             return GetResponse(result);
+        }
+
+        [HttpPost("save")]
+        public async Task<IActionResult> SaveEmployee([FromBody] SaveEmployeeRequestDto request)
+        {
+            var result = await _employeeService.SaveEmployeeAsync(request);
+            return CreatedResponse(result);
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateEmployee([FromBody] UpdateEmployeeRequestDto request)
+        {
+            var result = await _employeeService.UpdateEmployeeAsync(request);
+            return UpdatedResponse(result);
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var result = await _employeeService.DeleteEmployeeAsync(id);
+            return Ok(result);
         }
     }
 }

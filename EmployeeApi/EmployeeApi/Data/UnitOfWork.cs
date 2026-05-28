@@ -82,13 +82,39 @@ namespace EmployeeApi.Data
             };
         }
 
+        public async Task<BaseResponse> ExecuteNonQueryAsync(
+            string spName,
+            object parameters
+        )
+        {
+            using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var dynamicParams = new DynamicParameters(parameters);
+
+            dynamicParams.Add("status", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            dynamicParams.Add("message", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+            await connection.ExecuteAsync(
+                spName,
+                dynamicParams,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return new BaseResponse
+            {
+                Status = dynamicParams.Get<int>("status"),
+                Message = dynamicParams.Get<string>("message")
+            };
+        }
+
         // =====================================
         // FUNCTION
         // =====================================
         public async Task<T> ExecuteFunctionAsync<T>(
-    string functionName,
-    object parameters
-)
+            string functionName,
+            object parameters
+        )
         {
             using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync();

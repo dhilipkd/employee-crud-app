@@ -4,15 +4,24 @@ import { useEffect, useState } from "react";
 
 import TDataTable from "../components/TDataTable";
 import TOffCanvas from "../components/TOffCanvas";
-
 import EmployeeForm from "../components/employee/EmployeeForm";
+import { ConfirmDialog } from "primereact/confirmdialog";
 
 import "../styles/employee.css";
 
-import { getEmployeeDetails, getEmployeeMasters } from "../services/EmployeeService";
+import {
+    getEmployeeDetails,
+    getEmployeeMasters,
+    saveEmployee,
+    updateEmployee,
+    deleteEmployee
+} from "../services/EmployeeService";
 
 export default function EmployeePage() {
 
+    // =========================
+    // STATE
+    // =========================
     const [showSidebar, setShowSidebar] = useState(false);
     const [employees, setEmployees] = useState<any[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<any[]>([]);
@@ -22,8 +31,8 @@ export default function EmployeePage() {
         employeeId: 0,
         employeeName: "",
         email: "",
-        departmentId: "",
-        designationId: "",
+        departmentId: 0,
+        designationId: 0,
         salary: "",
     });
 
@@ -32,76 +41,48 @@ export default function EmployeePage() {
     // =========================
     const loadEmployees = async () => {
 
-        const response: any =
-            await getEmployeeDetails({
-                employeeId: undefined
-            });
-        console.log("FULL RESPONSE:", response);
+        const response: any = await getEmployeeDetails({
+            employeeId: undefined
+        });
 
-        const employeeList =
-            response?.employees || [];
+        const employeeList = response?.employees || [];
 
-        const formatted =
-            employeeList.map((x: any) => ({
-                employeeId: x.employeeId,
-                Employee_Name: x.employeeName,
-                Email: x.email,
-                Department: x.departmentName,
-                Designation: x.designationName,
-                Salary: x.salary
-            }));
+        const formatted = employeeList.map((x: any) => ({
+            employeeId: x.employeeId,
+            Employee_Name: x.employeeName,
+            Email: x.email,
+            Department: x.departmentName,
+            Designation: x.designationName,
+            Salary: x.salary
+        }));
 
         setEmployees(formatted);
     };
 
     // =========================
-    // LOAD DROPDOWNS
+    // LOAD MASTER DATA
     // =========================
-    const loadDropdowns = async () => {
+    const loadDepartments = async () => {
 
-        const [
-            departmentRes,
-            designationRes
-        ] = await Promise.all([
-            getEmployeeMasters("Department"),
-            getEmployeeMasters("Designation")
-        ]);
+        const res = await getEmployeeMasters("Department");
 
-        console.log("departmentRes:", departmentRes);
-        console.log("designationRes:", designationRes);
+        const formatted = (res?.data || []).map((x: any) => ({
+            label: x.name,
+            value: x.id
+        }));
 
-        const formattedDepartments =
-            (departmentRes?.data || []).map((x: any) => ({
-                label: x.name,
-                value: x.id
-            }));
-
-        const formattedDesignations =
-            (designationRes?.data || []).map((x: any) => ({
-                label: x.name,
-                value: x.id
-            }));
-
-        setDepartmentOptions(
-            formattedDepartments
-        );
-
-        setDesignationOptions(
-            formattedDesignations
-        );
+        setDepartmentOptions(formatted);
     };
 
-    useEffect(() => {
-        loadEmployees();
-        loadDropdowns();
-    }, []);
-
+    // =========================
+    // LOAD DESIGNATION BASED ON DEPARTMENT
+    // =========================
     const handleDepartmentChange = async (deptId: any) => {
 
-        setForm((prev: any) => ({
+        setForm((prev) => ({
             ...prev,
             departmentId: deptId,
-            designationId: ""
+            designationId: 0
         }));
 
         const res = await getEmployeeMasters("Designation", deptId);
@@ -115,54 +96,114 @@ export default function EmployeePage() {
     };
 
     // =========================
+    // LOAD ALL INITIAL DATA
+    // =========================
+    useEffect(() => {
+        loadEmployees();
+        loadDepartments();
+    }, []);
+
+    // =========================
+    // ADD NEW
+    // =========================
+    const handleAdd = () => {
+        setForm({
+            employeeId: 0,
+            employeeName: "",
+            email: "",
+            departmentId: 0,
+            designationId: 0,
+            salary: "",
+        });
+
+        setDesignationOptions([]);
+        setShowSidebar(true);
+    };
+
+    // =========================
     // EDIT
     // =========================
     const handleEdit = async (row: any) => {
-        const response: any =
-            await getEmployeeDetails({
-                employeeId: row.employeeId
-            });
 
-        const employee =
-            response?.employees?.[0];
+        const response: any = await getEmployeeDetails({
+            employeeId: row.employeeId
+        });
 
-        if (!employee) return;
+        const emp = response?.employees?.[0];
+        if (!emp) return;
+
+        // load designations for selected department
+        const desRes = await getEmployeeMasters("Designation", emp.departmentId);
+
+        const formattedDes = (desRes?.data || []).map((x: any) => ({
+            label: x.name,
+            value: x.id
+        }));
+
+        setDesignationOptions(formattedDes);
 
         setForm({
-            employeeId: employee.employeeId,
-            employeeName: employee.employeeName,
-            email: employee.email,
-            departmentId: employee.departmentId,
-            designationId: employee.designationId,
-            salary: employee.salary
+            employeeId: emp.employeeId,
+            employeeName: emp.employeeName,
+            email: emp.email,
+            departmentId: emp.departmentId,
+            designationId: emp.designationId,
+            salary: emp.salary
         });
 
         setShowSidebar(true);
     };
 
     // =========================
-    // DELETE
+    // DELETE (LOCAL UI ONLY)
     // =========================
-    const handleDelete = (row: any) => {
-
-        const updatedEmployees =
-            employees.filter(
-                (employee) =>
-                    employee.employeeId !== row.employeeId
-            );
-
-        setEmployees(updatedEmployees);
-    };
-
-    // =========================
-    // SAVE
-    // =========================
-    const handleSave = async () => {
-        console.log(form);
-        setShowSidebar(false);
+    const handleDelete = async (row: any) => {
+        await deleteEmployee(row.employeeId);
         await loadEmployees();
     };
 
+    // =========================
+    // SAVE / UPDATE (AUTO DETECT)
+    // =========================
+    const handleSave = async () => {
+
+        const payload = {
+            employeeName: form.employeeName,
+            email: form.email,
+            departmentId: Number(form.departmentId),
+            designationId: Number(form.designationId),
+            salary: Number(form.salary)
+        };
+
+        if (form.employeeId > 0) {
+
+            await updateEmployee({
+                employeeId: form.employeeId,
+                ...payload
+            });
+
+        } else {
+
+            await saveEmployee(payload);
+        }
+
+        setShowSidebar(false);
+        await loadEmployees();
+
+        // reset form
+        setForm({
+            employeeId: 0,
+            employeeName: "",
+            email: "",
+            departmentId: 0,
+            designationId: 0,
+            salary: "",
+        });
+    };
+
+    // =========================
+    // UI
+    // =========================
     return (
         <div className="p-5">
 
@@ -175,7 +216,7 @@ export default function EmployeePage() {
                 dataKey="employeeId"
                 excludedFields={["employeeId"]}
                 showAdd={true}
-                onAdd={() => setShowSidebar(true)}
+                onAdd={handleAdd}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
             />
@@ -183,8 +224,8 @@ export default function EmployeePage() {
             <TOffCanvas
                 visible={showSidebar}
                 onHide={() => setShowSidebar(false)}
-                header="Add Employee"
-                primaryLabel="Save"
+                header={form.employeeId ? "Edit Employee" : "Add Employee"}
+                primaryLabel={form.employeeId ? "Update" : "Save"}
                 primaryAction={handleSave}
             >
                 <EmployeeForm
@@ -195,6 +236,8 @@ export default function EmployeePage() {
                     onDepartmentChange={handleDepartmentChange}
                 />
             </TOffCanvas>
+
+            <ConfirmDialog />
 
         </div>
     );

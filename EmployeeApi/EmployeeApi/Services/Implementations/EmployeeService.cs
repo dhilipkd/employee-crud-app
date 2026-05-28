@@ -1,6 +1,7 @@
 ﻿using EmployeeApi.Constants;
 using EmployeeApi.Data;
 using EmployeeApi.Modals;
+using EmployeeApi.Modals.EmployeeApi.Modals;
 using EmployeeApi.Services.Interfaces;
 
 namespace EmployeeApi.Services.Implementations
@@ -47,6 +48,57 @@ namespace EmployeeApi.Services.Implementations
                     );
 
             return result;
+        }
+
+        // =========================
+        // SAVE EMPLOYEE
+        // =========================
+        public async Task<BaseResponse> SaveEmployeeAsync(SaveEmployeeRequestDto request)
+        {
+            return await _unitOfWork.ExecuteNonQueryAsync(
+                SPConstants.InsertEmployee,
+                new
+                {
+                    p_employeename = request.EmployeeName,
+                    p_email = request.Email,
+                    p_departmentid = request.DepartmentId,
+                    p_designationid = request.DesignationId,
+                    p_salary = request.Salary
+                }
+            );
+        }
+
+        // =========================
+        // UPDATE EMPLOYEE
+        // =========================
+        public async Task<BaseResponse> UpdateEmployeeAsync(UpdateEmployeeRequestDto request)
+        {
+            return await _unitOfWork.ExecuteNonQueryAsync(
+                SPConstants.UpdateEmployee,
+                new
+                {
+                    p_employeeid = request.EmployeeId,
+                    p_employeename = request.EmployeeName,
+                    p_email = request.Email,
+                    p_departmentid = request.DepartmentId,
+                    p_designationid = request.DesignationId,
+                    p_salary = request.Salary
+                }
+            );
+        }
+
+        // =========================
+        // DELETE EMPLOYEE
+        // =========================
+        public async Task<BaseResponse> DeleteEmployeeAsync(int employeeId)
+        {
+            return await _unitOfWork.ExecuteNonQueryAsync(
+                SPConstants.DeleteEmployee,
+                new
+                {
+                    p_employeeid = employeeId
+                }
+            );
         }
     }
 }
